@@ -102,9 +102,9 @@ class Conta:
             return (False,)
 
 class ContaCorrente(Conta):
-    def __init__(self, limite=500, limite_saques=3, **kw):
+    def __init__(self, limite=500, limite_transacao=10, **kw):
         self._limite = limite
-        self._limite_saques = limite_saques
+        self._limite_transacao = limite_transacao
         super().__init__(**kw)
 
     @property
@@ -112,20 +112,21 @@ class ContaCorrente(Conta):
         return self._limite
     
     @property
-    def limite_saques(self):
-        return self._limite_saques
+    def limite_transacao (self):
+        return self._limite_transacao
 
     def sacar(self, valor):
-        saques_realizados = len(
-            [transacao for transacao in self.historico.transacoes if transacao["Tipo de transação"] == Saque.__name__]
+        transacoes_realizados = len(
+            [transacao for transacao in self.historico.transacoes]
         )
 
-        excede_limite_saques = saques_realizados >= self.limite_saques
+        
+        excedeu_transacoes = transacoes_realizados >= self.limite_transacao
         excede_limite_dinheiro = valor > self.limite
         
         
-        if excede_limite_saques:
-            print( "Operação falhou! Limite diário de saques atingido.")
+        if excedeu_transacoes:
+            print( "Operação falhou! Limite diário de transações atingido.")
 
         elif excede_limite_dinheiro:
             print( "Operação falhou! Digite um valor válido para saque")
@@ -134,7 +135,22 @@ class ContaCorrente(Conta):
             return super().sacar(valor)
         
         return (False,)
+    
+    def depositar(self, valor):
+        transacoes_realizados = len(
+            [transacao for transacao in self.historico.transacoes]
+        )
+        
+        excedeu_transacoes = transacoes_realizados >= self.limite_transacao
 
+        if excedeu_transacoes:
+            print( "Operação falhou! Limite diário de transações atingido.")
+
+        else:
+            return super().depositar(valor)
+
+        return (False,)
+    
     def __str__(self):
         return f"""\
             Agência:\t{self.agencia}
@@ -159,28 +175,9 @@ class Historico:
         })
 
     def gerador_relatorios(self, tipo_transacao = None):
-        match tipo_transacao:
-            # se for, mostrar o que pediu somente
-            case "Saque":
-                if len(self.transacoes) == 0:
-                    print("\nNão foi encontrado nenhum registro de saques anteriores.")
-                else:
-                    [print(transacao) for transacao in self.transacoes if transacao["Tipo de transação"] == tipo_transacao]
-                
-            case "Deposito":
-                if len(self.transacoes) == 0:
-                    print("\nNão foi encontrado nenhum registro de depósitos anteriores.")
-                else:
-                    [print(transacao) for transacao in self.transacoes if transacao["Tipo de transação"] == tipo_transacao]
-
-            # se não for informado o tipo de transação é mostrado tudo;
-            case _:
-                if len(self.transacoes) == 0:
-                    print("\nNão foi encontrado nenhum registro de transações anteriores.")
-                else:
-                    [print(transacao) for transacao in self.transacoes]
-
-        return True
+        for transacao in self._transacoes:
+            if tipo_transacao is None or transacao["Tipo de transação"].lower() == tipo_transacao.lower():
+                yield transacao
 
 class Transacao(ABC):
     @property
@@ -346,19 +343,25 @@ def exibir_extrato():
     if usuario[0] == True:
         numero = int(input("Digite o numero da conta: "))
         conta = usuario[1].procurar_conta(numero=numero)
+        saldo_conta = f"\nSaldo atual: {conta[1].saldo:.2f}\n"
 
         if conta[0]:
             opex = int(input(menuExtrato))
 
             match opex:
                 case 1:
-                    conta[1].historico.gerador_relatorios(tipo_transacao = "Deposito")
-
+                    for transacao in conta[1].historico.gerador_relatorios(tipo_transacao = "Deposito"):
+                        print(f"{transacao['Tipo de transação']} -- {transacao["Valor"]} em {transacao["Data"]}")
+                    print(saldo_conta)
                 case 2:
-                    conta[1].historico.gerador_relatorios(tipo_transacao = "Saque")
+                    for transacao in conta[1].historico.gerador_relatorios(tipo_transacao = "Saque"):
+                        print(f"{transacao['Tipo de transação']} -- {transacao["Valor"]} em {transacao["Data"]}")
+                    print(saldo_conta)
 
                 case 3:
-                    conta[1].historico.gerador_relatorios()
+                    for transacao in conta[1].historico.gerador_relatorios():
+                        print(f"{transacao['Tipo de transação']} -- {transacao["Valor"]} em {transacao["Data"]}")
+                    print(saldo_conta)
 
                 case _:
                     print("Operação inválida! Opção não reconhecida.")
