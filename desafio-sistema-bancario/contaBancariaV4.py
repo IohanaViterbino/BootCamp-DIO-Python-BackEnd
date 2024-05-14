@@ -7,7 +7,10 @@ class Cliente:
         self.contas = []
     
     def realizar_transacao(self, conta, transacao):
-        transacao.registrar(conta)
+        if(conta.historico.limite_transacoes_diarias() >= conta.limite_transacao):
+            print("Operação falhou! Limite diário de transações atingido.")
+        else:
+            transacao.registrar(conta)
 
     def adicionar_conta(self, conta):
         # recebe uma instancia de conta
@@ -116,19 +119,9 @@ class ContaCorrente(Conta):
         return self._limite_transacao
 
     def sacar(self, valor):
-        transacoes_realizados = len(
-            [transacao for transacao in self.historico.transacoes]
-        )
-
-        
-        excedeu_transacoes = transacoes_realizados >= self.limite_transacao
         excede_limite_dinheiro = valor > self.limite
         
-        
-        if excedeu_transacoes:
-            print( "Operação falhou! Limite diário de transações atingido.")
-
-        elif excede_limite_dinheiro:
+        if excede_limite_dinheiro:
             print( "Operação falhou! Digite um valor válido para saque")
         
         else:
@@ -137,19 +130,7 @@ class ContaCorrente(Conta):
         return (False,)
     
     def depositar(self, valor):
-        transacoes_realizados = len(
-            [transacao for transacao in self.historico.transacoes]
-        )
-        
-        excedeu_transacoes = transacoes_realizados >= self.limite_transacao
-
-        if excedeu_transacoes:
-            print( "Operação falhou! Limite diário de transações atingido.")
-
-        else:
-            return super().depositar(valor)
-
-        return (False,)
+        return super().depositar(valor)
     
     def __str__(self):
         return f"""\
@@ -178,6 +159,12 @@ class Historico:
         for transacao in self._transacoes:
             if tipo_transacao is None or transacao["Tipo de transação"].lower() == tipo_transacao.lower():
                 yield transacao
+
+    def limite_transacoes_diarias(self):
+        mascara = "%d-%m-%Y"
+        hoje = datetime.today().strftime(mascara)
+        transacoes_diarias = [transacao for transacao in self.transacoes if datetime.strptime(transacao["Data"].split()[0], mascara) == datetime.strptime(hoje, mascara)]
+        return len(transacoes_diarias)
 
 class Transacao(ABC):
     @property
@@ -298,7 +285,7 @@ def sacar():
             valor = float(input("Digite o valor do seu saque: "))  
             saque = Saque(valor=valor) 
 
-            saque.registrar(conta=conta[1])
+            usuario[1].realizar_transacao(conta=conta[1], transacao=saque)
         else:
             print("Conta não encontrada!")
             status = False
@@ -322,7 +309,7 @@ def depositar():
             valor = float(input("Digite o valor do seu depósito: "))  
             deposito = Deposito(valor=valor) 
 
-            deposito.registrar(conta=conta[1])
+            usuario[1].realizar_transacao(conta=conta[1], transacao=deposito)
         else:
             print("Conta não encontrada!")
             status = False
