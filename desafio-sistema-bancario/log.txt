@@ -1,0 +1,2 @@
+[16-05-2024 08:51:41] A operação de Cadastrar_cliente foi executada com sucesso e seu retorno foi True
+[16-05-2024 08:52:46] A operaÃ§Ã£o de Cadastrar_cliente foi executada com sucesso e seu retorno foi True
