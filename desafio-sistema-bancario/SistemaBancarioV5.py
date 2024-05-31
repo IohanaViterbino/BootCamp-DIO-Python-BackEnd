@@ -4,10 +4,6 @@ from pathlib import Path
 
 ROOT_PATH = Path(__file__).parent
 
-# se quiser ir além, fazer um arquivo csv dos clientes
-# e de transações vinculadas a cada cliente
-
-
 class Cliente:
     def __init__(self, endereco):
         self.endereco = endereco
