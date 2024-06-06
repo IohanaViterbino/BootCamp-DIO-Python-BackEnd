@@ -9,7 +9,7 @@ Este projeto é uma aplicação FastAPI projetada e adaptada para o desafio de p
 - **Operações CRUD para Atletas**: Criar, ler, atualizar e deletar registros de atletas.
 - **Gerenciamento de Categorias e Centros de Treinamento**: Vincular atletas às suas respectivas categorias e centros de treinamento.
 - **Paginação**: Paginar os resultados de maneira eficiente usando `fastapi_pagination`.
-- **Tratamento de Exceções**: Manipular erros de integridade do SQL e outras exceções de forma graciosa.
+- **Tratamento de Exceções**: Manipular erros de integridade do SQL e outras exceções.
 
 ## Configuração
 

@@ -106,39 +106,39 @@ async def query(db_session: DatabaseDependency) -> LimitOffsetPage[AtletaOutParc
 
 # trocar por id para cpf
 @router.get(
-    '/{id}', 
-    summary='Consulta um Atleta pelo id',
+    '/{cpf}', 
+    summary='Consulta um Atleta pelo cpf',
     status_code=status.HTTP_200_OK,
     response_model=AtletaOutAll,
 )
-async def get(id: UUID4, db_session: DatabaseDependency) -> AtletaOutAll:
+async def get(cpf: str, db_session: DatabaseDependency) -> AtletaOutAll:
     atleta: AtletaOutAll = (
-        await db_session.execute(select(AtletaModel).filter_by(id=id))
+        await db_session.execute(select(AtletaModel).filter_by(cpf=cpf))
     ).scalars().first()
 
     if not atleta:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail=f'Atleta não encontrado no id: {id}'
+            detail=f'Atleta não encontrado com cpf: {cpf}'
         )
     
     return atleta
 
 @router.patch(
-    '/{id}', 
-    summary='Editar um Atleta pelo id',
+    '/{cpf}', 
+    summary='Editar um Atleta pelo cpf',
     status_code=status.HTTP_200_OK,
     response_model=AtletaOutAll,
 )
-async def patch(id: UUID4, db_session: DatabaseDependency, atleta_up: AtletaUpdate = Body(...)) -> AtletaOutAll:
+async def patch(cpf: str, db_session: DatabaseDependency, atleta_up: AtletaUpdate = Body(...)) -> AtletaOutAll:
     atleta: AtletaOutAll = (
-        await db_session.execute(select(AtletaModel).filter_by(id=id))
+        await db_session.execute(select(AtletaModel).filter_by(cpf=cpf))
     ).scalars().first()
 
     if not atleta:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail=f'Atleta não encontrado no id: {id}'
+            detail=f'Atleta não encontrado com cpf: {cpf}'
         )
     try:
         atleta_update = atleta_up.model_dump(exclude_unset=True)
@@ -165,19 +165,19 @@ async def patch(id: UUID4, db_session: DatabaseDependency, atleta_up: AtletaUpda
 
 
 @router.delete(
-    '/{id}', 
-    summary='Deletar um Atleta pelo id',
+    '/{cpf}', 
+    summary='Deletar um Atleta pelo cpf',
     status_code=status.HTTP_204_NO_CONTENT
 )
-async def delete(id: UUID4, db_session: DatabaseDependency) -> None:
+async def delete(cpf: str, db_session: DatabaseDependency) -> None:
     atleta: AtletaOutAll = (
-        await db_session.execute(select(AtletaModel).filter_by(id=id))
+        await db_session.execute(select(AtletaModel).filter_by(cpf=cpf))
     ).scalars().first()
 
     if not atleta:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail=f'Atleta não encontrado no id: {id}'
+            detail=f'Atleta não encontrado com cpf: {cpf}'
         )
     
     await db_session.delete(atleta)
